@@ -1,28 +1,33 @@
-import numpy as np
+'Import module'
 import random
-import sqlite3
+import numpy as np
 
-default_accuracy = 3
+DEFAULT_ACCURACY = 3
 
 
-def sumTwoValues(first, second):
+def sum_two_values(first, second):
+    """function print sum of two"""
     return first + second
 
 
-def div(x, y, ACCURACY, module):
-    return round(x/y,  ACCURACY)
+def div(x, y, accuracy):
+    """function print del x/y"""
+    return round(x/y,  accuracy)
 
 
 
 def get_rand():
+    """function return of random"""
     return random.randint(1, 10)
 
 def rand_array():
+    """function random massive"""
     a = [get_rand(), get_rand(), get_rand()]
     return np.array(a)
 
 def main():
-    pass
+    """main?"""
+    print(rand_array())
 
 
 main()
