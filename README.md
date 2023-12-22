@@ -4,7 +4,7 @@
 
 Для начала изучить теоретический материал:
 
-[основы работы с git](https://proglib.io/p/git-for-half-an-hour)
+[Основы работы с git](https://proglib.io/p/git-for-half-an-hour)
 
 Порядок работы:
 
@@ -67,6 +67,20 @@
 Продвинутый уровень:
 
 * WebApps
+* Кэширование запросов, сохранение дампов состояния на диск
 * Прогнозирование
 * Безопасность
-* Развертывание
+* Развертывание (напр. docker)
+
+Оформление работы:
+
+* Требуется создать репозиторий для проекта. Желательно иметь историю коммитов
+* Придерживайтесь [такой структуры проекта](https://habr.com/ru/companies/wunderfund/articles/678634/). В файле main.py должна быть только функция main(), остальное выносите в отдельные модули
+* Добавить файл README.md с [описанием проекта](https://gist.github.com/bzvyagintsev/0c4adf4403d4261808d75f9576c814c2)
+* Добавить .gitignore
+* Добавить [type hints](https://sky.pro/media/chto-takoe-type-hints-i-kak-ih-ispolzovat/) для функций
+* Сделать [документирование](https://techrocks.ru/2020/07/08/docstrings-in-python/) для некоторых функций
+* Добавить файл с unit-тестами (см. лабораторную работы) хотя бы для одной функции
+* Добавить [requirements.txt](https://teletype.in/@pythontalk/requirements)
+
+
