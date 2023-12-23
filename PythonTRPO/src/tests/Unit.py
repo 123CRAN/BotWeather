@@ -16,5 +16,6 @@ class TestGeometryFigures(unittest.TestCase):
         self.assertEqual(rectangle.ploshad(), 'Площадь Прямоугольник равна - 6')
 
 
-if __name__ == '__main__':
-    unittest.main()
+def start_test():
+    if __name__ == '__main__':
+        unittest.main()

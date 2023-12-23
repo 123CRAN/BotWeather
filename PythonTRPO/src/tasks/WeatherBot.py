@@ -44,38 +44,38 @@ def weather_location(message):
                      'Не удалось определить город по геолокации. Пожалуйста, укажите город текстовым сообщением.')
 
 
-@bot.message_handler(text='🕵🏻Мониторинг погоды')
-def monitor_command(message):
-    bot.send_message(message.chat.id,
-                     'Укажи город, а также значение пороговой температуры через пробел\nЯ сообщу, как только температура будет выше или ниже такого значения')
-
-
-def set_monitoring(message, grad, city):
-    global grad_monitor, city_monitor
-    grad_monitor = grad
-    city_monitor = city
-    bot.send_message(chat_id=message.chat.id, text=f'Мониторинг погоды установлен для города {city_monitor} '
-                                                   f'с пороговой температурой {grad_monitor}°C.')
+# @bot.message_handler(text='🕵🏻Мониторинг погоды')
+# def monitor_command(message):
+#     bot.send_message(message.chat.id,
+#                      'Укажи город, а также значение пороговой температуры через пробел\nЯ сообщу, как только температура будет выше или ниже такого значения')
+#
+#
+# def set_monitoring(message, grad, city):
+#     global grad_monitor, city_monitor
+#     grad_monitor = grad
+#     city_monitor = city
+#     bot.send_message(chat_id=message.chat.id, text=f'Мониторинг погоды установлен для города {city_monitor} '
+#                                                    f'с пороговой температурой {grad_monitor}°C.')
 
 
 # Регулярная задача для мониторинга погоды каждые 10 минут
-@scheduler.scheduled_job('interval', minutes=10)
-def monitor_weather():
-    global grad_monitor, city_monitor, current_message
-    if grad_monitor is not None and city_monitor is not None:
-        # Ваш код мониторинга погоды
-        current_weather = get_weather(city_monitor)
-
-        if current_weather is not None:
-            temperature = current_weather['main']['temp']
-
-            # Проверяем пороговое значение
-            if temperature < grad_monitor:
-                bot.send_message(current_message.chat.id, f'Внимание! Температура в {city_monitor} меньше {grad_monitor}°C.')
-            elif temperature > grad_monitor:
-                bot.send_message(current_message.chat.id, f'Внимание! Температура в {city_monitor} выше {grad_monitor}°C.')
-        else:
-            bot.send_message(current_message.chat.id, 'Не удалось получить данные о погоде. Пожалуйста, попробуйте позже.')
+# @scheduler.scheduled_job('interval', minutes=10)
+# def monitor_weather():
+#     global grad_monitor, city_monitor, current_message
+#     if grad_monitor is not None and city_monitor is not None:
+#         # Ваш код мониторинга погоды
+#         current_weather = get_weather(city_monitor)
+#
+#         if current_weather is not None:
+#             temperature = current_weather['main']['temp']
+#
+#             # Проверяем пороговое значение
+#             if temperature < grad_monitor:
+#                 bot.send_message(current_message.chat.id, f'Внимание! Температура в {city_monitor} меньше {grad_monitor}°C.')
+#             elif temperature > grad_monitor:
+#                 bot.send_message(current_message.chat.id, f'Внимание! Температура в {city_monitor} выше {grad_monitor}°C.')
+#         else:
+#             bot.send_message(current_message.chat.id, 'Не удалось получить данные о погоде. Пожалуйста, попробуйте позже.')
 
 
 # Обработчик текстовых сообщений
