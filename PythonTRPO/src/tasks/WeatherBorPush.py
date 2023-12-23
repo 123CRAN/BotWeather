@@ -1,3 +1,5 @@
+from typing import List, Union, Dict, Any
+from apscheduler.schedulers.background import BackgroundScheduler
 import telebot
 from telebot import types
 import requests
@@ -6,33 +8,30 @@ import matplotlib
 from icecream import ic
 from datetime import datetime
 import pandas as pd
-from apscheduler.schedulers.background import BackgroundScheduler
 
 matplotlib.use("agg")
 
-TELEGRAM_BOT_TOKEN = '6803912561:AAHhBAfSSo3hvIeoiZ_nUPlB3hW4bELRlIY'
-API_KEY = '742c32b186b8d4a4f02f95372d981ed4'
+TELEGRAM_BOT_TOKEN: str = '6803912561:AAHhBAfSSo3hvIeoiZ_nUPlB3hW4bELRlIY'
+API_KEY: str = '742c32b186b8d4a4f02f95372d981ed4'
 
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-scheduler = BackgroundScheduler()
+bot: telebot.TeleBot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+scheduler: BackgroundScheduler = BackgroundScheduler()
 
-grad_mng = None
-city_mng_name = None
-direction_mng_grad = None
-current_chat = None
+grad_mng: Union[None, int] = None
+city_mng_name: Union[None, str] = None
+direction_mng_grad: Union[None, str] = None
+current_chat: Union[None, str] = None
 
 
-def start_monitoring(message):
+def start_monitoring(message: types.Message) -> None:
     """Получаем город для мониторинга"""
     global current_chat
-    ic(type(message.chat.id))
     current_chat = str(message.chat.id)
-    ic(type(current_chat))
     bot.send_message(message.chat.id, text="Укажите город для которого хотите установить мониторинг")
     bot.register_next_step_handler(message, grad)
 
 
-def grad(message):
+def grad(message: types.Message) -> None:
     """Температуру мониторинга"""
     global city_mng_name
     city_mng_name = message.text
@@ -40,35 +39,32 @@ def grad(message):
     bot.register_next_step_handler(message, direction_grad)
 
 
-def direction_grad(message):
+def direction_grad(message: types.Message) -> None:
     """Направление для уведомления"""
     global grad_mng
-    ic()
     grad_mng = int(message.text)
     keyboard = types.ReplyKeyboardMarkup(row_width=1)
     upper = types.KeyboardButton(text='Выше')
     lower = types.KeyboardButton(text='Ниже')
     keyboard.add(upper, lower)
-    ic()
     bot.send_message(message.chat.id, text="Нажмите на кнопку, чтобы установить направление мониторинга температуры",
                      reply_markup=keyboard)
     bot.register_next_step_handler(message, set_monitoring)
 
 
-# @bot.callback_query_handler(func=lambda call: True)
-def set_monitoring(message):
+def set_monitoring(message: types.Message) -> None:
     """Сообщение о установке мониторинга"""
     global direction_mng_grad
     direction_mng_grad = message.text.lower()
-    bot.send_message(message.chat.id, text=f"Мониторинг погоды установлен для города {city_mng_name} "
-                                           f"с пороговой температурой {direction_mng_grad} {grad_mng}°C.")
+    bot.send_message(message.chat.id,
+                     text=f"Мониторинг погоды установлен для города {city_mng_name} "
+                          f"с пороговой температурой {direction_mng_grad} {grad_mng}°C.")
     scheduler.add_job(monitor_weather, 'interval', minutes=10, args=[message])
     scheduler.start()
 
 
-# Обработчик команды /start
 @bot.message_handler(commands=["start"])
-def start(message):
+def start(message: types.Message) -> None:
     """Стартовая команда"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     b_geo = types.KeyboardButton(text='🗺️Отправить геолокацию', request_location=True)
@@ -76,18 +72,16 @@ def start(message):
     b_forecast = types.KeyboardButton(text='Узнать погоду на 5 дней вперёд')
     markup.add(b_geo, b_mntr, b_forecast)
     bot.send_message(message.chat.id,
-                     'Привет! Я бот погоды и вот что я могу: \nВыводить актулальную погоду, просто введите название города или нажмите на кнопку геолокации, устанавливать мониторинг погоды',
+                     'Привет! Я бот погоды и вот что я могу: \nВыводить актуальную погоду, просто введите название города или нажмите на кнопку геолокации, устанавливать мониторинг погоды',
                      reply_markup=markup)
 
 
-# Обработчик геолокации
 @bot.message_handler(content_types=['location'])
-def weather_location(message):
+def weather_location(message: types.Message) -> None:
     """Считывание геолокации"""
     global lat, lon
     lat, lon = message.location.latitude, message.location.longitude
     city_name = get_city_name_by_coordinates(lat, lon)
-    ic()
     if city_name:
         bot.send_message(message.chat.id, get_weather(city_name))
     else:
@@ -95,16 +89,13 @@ def weather_location(message):
                      'Не удалось определить город по геолокации. Пожалуйста, укажите город текстовым сообщением.')
 
 
-def get_weather(city_name):
+def get_weather(city_name: str) -> str:
     """Получение данных о погоде по названию города"""
     try:
         global data
         url = f'https://api.openweathermap.org/data/2.5/weather?q={city_name}&units=metric&lang=ru&appid={API_KEY}'
-        ic(url)
         response = requests.get(url)
         data = response.json()
-        ic()
-        ic(data)
         if response.status_code == 200:
             temperature = data['main']['temp']
             description = data['weather'][0]['description']
@@ -117,18 +108,18 @@ def get_weather(city_name):
 
 
 @bot.message_handler(func=lambda message: message.text != '')
-def monitor_command(message):
+def monitor_command(message: types.Message) -> None:
     if message.text == 'Узнать погоду на 5 дней вперёд':
         bot.send_message(message.chat.id, 'Вы выбрали получение прогноза на 5 дней вперёд. Введите название города')
         bot.register_next_step_handler(message, get_forecast)
     elif message.text == '🕵🏻Мониторинг погоды':
         start_monitoring(message)
     else:
-        get_weather(message.text)
+        bot.send_message(message.chat.id, get_weather(message.text))
 
 
-def plot_temperature_graph(data_t, city_name):
-    """Построения графика температуры на 5 дней"""
+def plot_temperature_graph(data_t: List[Dict[str, Union[str, float]]], city_name: str) -> None:
+    """Построение графика температуры на 5 дней"""
     df = pd.DataFrame(data_t)
     df['date'] = pd.to_datetime(df['date'])
 
@@ -142,7 +133,7 @@ def plot_temperature_graph(data_t, city_name):
     plt.close()
 
 
-def get_city_name_by_coordinates(latitude, longitude):
+def get_city_name_by_coordinates(latitude: float, longitude: float) -> Union[str, None]:
     """Запрос к API для получения названия города из координат"""
     try:
         url = f'http://nominatim.openstreetmap.org/reverse?format=json&lat={latitude}&lon={longitude}'
@@ -159,12 +150,10 @@ def get_city_name_by_coordinates(latitude, longitude):
         return None
 
 
-def get_forecast(message):
+def get_forecast(message: types.Message) -> None:
     """Получаем прогноз погоды на 5 дней вперёд"""
     city_name = message.text
-    ic()
     try:
-        ic('forecast')
         url = f'http://api.openweathermap.org/data/2.5/forecast?q={city_name}&appid={API_KEY}&units=metric&lang=ru'
         response = requests.get(url)
         data_t = response.json()
@@ -187,16 +176,13 @@ def get_forecast(message):
         return None
 
 
-# @scheduler.scheduled_job('interval', minutes=10)
-def monitor_weather(message):
+def monitor_weather(message: types.Message) -> None:
     """Мониторинг погоды"""
     global grad_mng, city_mng_name, current_chat, direction_mng_grad
     if grad_mng is not None and city_mng_name is not None:
         url = f'https://api.openweathermap.org/data/2.5/weather?q={city_mng_name}&units=metric&lang=ru&appid={API_KEY}'
-        ic(url)
         response = requests.get(url)
         current_weather = response.json()
-        ic()
         if current_weather is not None:
             temperature = current_weather['main']['temp']
 
@@ -210,8 +196,7 @@ def monitor_weather(message):
         else:
             bot.send_message(message.chat.id,
                              'Не удалось получить данные о погоде. Пожалуйста, попробуйте позже.')
-        ic()
 
 
-def Bot_Run():
+def Bot_Run() -> None:
     bot.polling(none_stop=True, interval=0)
